@@ -6,7 +6,7 @@ if ARGV.length < 2
 end
 
 def hex_to_byte_array(str)
-  [str].pack("H*").unpack("C*")
+  str.scan(/../).map(&:hex)
 end
 
 def xor_byte_arrays(array_1, array_2)
