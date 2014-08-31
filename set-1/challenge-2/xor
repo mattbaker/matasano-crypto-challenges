@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+if ARGV.length < 2
+  puts "Ex. ./xor 1c0111001f010100061a024b53535009181c 686974207468652062756c6c277320657965"
+  exit 1
+end
+
+def hex_to_byte_array(str)
+  [str].pack("H*").unpack("C*")
+end
+
+def xor_byte_arrays(array_1, array_2)
+  array_1.zip(array_2)
+    .map{|pair| pair[0] ^ pair[1]}
+    .map{|byte| byte.to_s(16)}
+    .join('')
+end
+
+puts xor_byte_arrays(hex_to_byte_array(ARGV[0]),hex_to_byte_array(ARGV[1]))
