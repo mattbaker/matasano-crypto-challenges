@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+require_relative '../../lib/matasano.rb'
+
+decrypted = ARGF.readlines.map.with_index do |line, i|
+  [i] + Matasano::brute_xor(Matasano::hex_str_to_bytes(line.chomp)).first
+end
+
+puts "Top 5 Candidates:\n\n"
+
+decrypted
+  .sort_by{|line, _, plaintext| Matasano.freq_score(plaintext)}
+  .take(5)
+  .each do |line, key, plaintext|
+    puts "Line #{line} with key '#{key}': #{plaintext}"
+  end

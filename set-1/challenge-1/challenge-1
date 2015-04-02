@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'base64'
+require_relative '../../lib/matasano.rb'
+
+def hex_to_base64(hex_str)
+  Base64.strict_encode64(Matasano::bytes_to_str(Matasano::hex_str_to_bytes(hex_str)))
+end
+
+if ARGV.length > 0
+  puts hex_to_base64(ARGV[0])
+else
+  puts "e.x. ./challenge-1 49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d"
+end

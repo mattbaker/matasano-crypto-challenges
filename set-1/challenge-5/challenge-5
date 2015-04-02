@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+require_relative '../../lib/matasano'
+
+plain_text = ARGF.read
+plaintext_bytes = Matasano::str_to_bytes(plain_text)
+key_bytes = Matasano::str_to_bytes("ICE")
+puts Matasano.bytes_to_hex_str(Matasano.encrypt_xor(plaintext_bytes, key_bytes))

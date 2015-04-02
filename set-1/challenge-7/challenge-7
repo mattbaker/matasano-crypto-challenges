@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'base64'
+require 'openssl'
+
+file = Base64.decode64(ARGF.read)
+cipher = OpenSSL::Cipher.new('AES-128-ECB')
+cipher.decrypt
+cipher.key = "YELLOW SUBMARINE"
+puts cipher.update(file) + cipher.final

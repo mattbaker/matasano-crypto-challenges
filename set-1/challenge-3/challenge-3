@@ -1,75 +1,18 @@
 #!/usr/bin/env ruby
+require_relative '../../lib/matasano'
 
 if ARGV.length < 1
   puts "Ex. ./challenge-3 1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
   exit 1
 end
 
-#Hex string to byte array
-def hex_to_bytes(str)
-  str.scan(/../).map(&:hex)
-end
-
-#Byte array to str
-def bytes_to_str(arr)
-  arr.pack("c*")
-end
-
-#XOR two arrays of bytes
-def xor_bytes(byte_array1, byte_array2)
-  byte_array1.zip(byte_array2)
-    .map{|pair| pair[0] ^ pair[1]}
-end
-
-#Checks if a byte is a printable ASCII character (between 32 126)
-def printable_byte?(candidate)
-  candidate.chars.all? {|char| char.ord.between?(32,126)}
-end
-
-#Score against english language frequency distribution
-def frequency_score(str)
-  str = str.downcase
-  freqs = {"e"=> 0.12702,
-          "t" => 0.09056,
-          "a" => 0.08167,
-          "o" => 0.07507,
-          "i" => 0.06966,
-          "n" => 0.06749,
-          "s" => 0.06327,
-          "h" => 0.06094,
-          "r" => 0.05987,
-          "d" => 0.04253,
-          "l" => 0.04025,
-          "c" => 0.02782,
-          "u" => 0.02758,
-          "m" => 0.02406,
-          "w" => 0.02360,
-          "f" => 0.02228,
-          "g" => 0.02015,
-          "y" => 0.01974,
-          "p" => 0.01929,
-          "b" => 0.01492,
-          "v" => 0.00978,
-          "k" => 0.00772,
-          "j" => 0.00153,
-          "x" => 0.00150,
-          "q" => 0.00095,
-          "z" => 0.00074}
-  scores = {}
-
-  ('a'..'z').reduce(0) {|score, char| score + (freqs[char] - (str.count(char) / str.length.to_f)).abs}
-end
-
 #Check every single character xor, return top n candidates that are printable, sorted by freq score
-def brute(ciphertext, num_candidates=10)
-  (0..255).map {|char|
-    bytes_to_str(xor_bytes(hex_to_bytes(ciphertext), Array.new(ciphertext.length, char)))
-  }
-  .select {|candidate| printable_byte? candidate }
-  .sort {|c1,c2| frequency_score(c1) <=> frequency_score(c2)}
-  .take(num_candidates)
-end
-
-brute(ARGV[0]).each.with_index(1) do |candidate, i|
-  puts "#{i.to_s.rjust(2)}. #{candidate} (Score: #{frequency_score(candidate).round(4)})"
-end
+Matasano::brute_xor(
+  Matasano::hex_str_to_bytes(ARGV[0]))
+  .each
+  .with_index(1) do |(candidate, plaintext), i|
+    puts ["#{i.to_s.rjust(2)}.",
+        "Key: '#{candidate.chr}'",
+        "(Score: #{Matasano::freq_score(plaintext).round(4)})",
+        "Plaintext: #{plaintext}"].join(" ")
+  end

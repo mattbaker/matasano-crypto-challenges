@@ -1,0 +1,15 @@
+#!/usr/bin/env ruby
+
+require_relative '../../lib/matasano'
+require 'openssl'
+
+puts "Potential ECB Encrypted Strings:\n\n"
+
+ARGF.readlines
+  .map {|s| Matasano.hex_str_to_bytes(s).each_slice(16).to_a }
+  .map(&:uniq)
+  .map(&:length)
+  .map.with_index {|unique_blocks, i| [i, 10-unique_blocks]}
+  .sort_by(&:last)
+  .select {|_, repeating_blocks| repeating_blocks > 0}
+  .each { |index, repeating_blocks| puts "Line #{index+1} has #{repeating_blocks} repeating blocks."}

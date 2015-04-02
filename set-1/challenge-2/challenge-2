@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+require_relative '../../lib/matasano.rb'
+
+if ARGV.length < 2
+  puts "Ex. ./challenge-2 1c0111001f010100061a024b53535009181c 686974207468652062756c6c277320657965"
+  exit 1
+end
+
+puts Matasano::bytes_to_hex_str(
+  Matasano::xor_bytes(
+    Matasano::hex_str_to_bytes(ARGV[0]),
+    Matasano::hex_str_to_bytes(ARGV[1])))

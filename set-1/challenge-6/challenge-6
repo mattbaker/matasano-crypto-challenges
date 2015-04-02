@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+
+require 'base64'
+require_relative '../../lib/matasano'
+
+def guess_key_size(bytes, key_sizes = (2..40))
+  key_sizes.map do |candidate_size|
+    [candidate_size, Matasano::hamming_difference(candidate_size, bytes, 4)]
+  end
+  .sort_by(&:last)
+  .map(&:first)
+  .take(4)
+end
+
+def guess_keys(bytes, potential_key_sizes)
+  potential_key_sizes.map do |keysize|
+    Matasano.pad_blocks_to_size(bytes.each_slice(keysize), keysize)
+    .transpose
+    .map do |bytes|
+      xor_char, _ = Matasano::brute_xor(bytes).first
+      xor_char
+    end
+  end
+end
+
+def select_top_key(bytes, potential_keys)
+  potential_keys
+    .map {|key| [key, Matasano::decrypt_xor(bytes, key)]}
+    .max_by {|_, plaintext| -Matasano::freq_score(plaintext)}
+end
+
+file = Matasano::str_to_bytes(Base64.decode64(ARGF.read))
+candidate_sizes = guess_key_size(file)
+candidate_keys = guess_keys(file, candidate_sizes)
+top_key, plaintext = select_top_key(file, candidate_keys)
+
+puts "Key: #{top_key.map(&:chr).join}"
+puts ""
+puts "Plaintext:"
+puts plaintext
