@@ -1,3 +1,5 @@
+require 'openssl'
+
 module Matasano
   extend self
 
@@ -133,6 +135,22 @@ module Matasano
       .take(samples)
       .map {|chunk_2| Matasano::hamming_distance(chunk_1, chunk_2)/chunk_size.to_f }
       .reduce(:+) / samples
+  end
+
+  def decrypt_aes_128(data, key)
+    cipher = OpenSSL::Cipher.new('AES-128-ECB')
+    cipher.decrypt
+    cipher.padding = 0
+    cipher.key = key
+    cipher.update(data) + cipher.final
+  end
+
+  def encrypt_aes_128(data, key)
+    cipher = OpenSSL::Cipher.new('AES-128-ECB')
+    cipher.encrypt
+    cipher.padding = 0
+    cipher.key = key
+    cipher.update(data) + cipher.final
   end
 
   def pad_pkcs7(bytes, size)

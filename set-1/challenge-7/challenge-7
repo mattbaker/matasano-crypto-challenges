@@ -1,10 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'base64'
-require 'openssl'
+require_relative '../../lib/matasano'
 
-file = Base64.decode64(ARGF.read)
-cipher = OpenSSL::Cipher.new('AES-128-ECB')
-cipher.decrypt
-cipher.key = "YELLOW SUBMARINE"
-puts cipher.update(file) + cipher.final
+puts Matasano.decrypt_aes_128(Base64.decode64(ARGF.read), "YELLOW SUBMARINE")

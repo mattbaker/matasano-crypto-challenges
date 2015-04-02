@@ -115,6 +115,22 @@ class TestMatasano < Minitest::Test
     assert_equal 3.5, Matasano.hamming_difference(2, bytes, 3)
   end
 
+  def test_aes_encrypt
+    key = ["000102030405060708090a0b0c0d0e0f"].pack("H*")
+    plaintext = ["00112233445566778899aabbccddeeff"].pack("H*")
+    encrypted = Matasano.encrypt_aes_128(plaintext, key).unpack("H*")[0]
+
+    assert_equal "69c4e0d86a7b0430d8cdb78070b4c55a", encrypted
+  end
+
+  def test_aes_decrypt
+    key = ["000102030405060708090a0b0c0d0e0f"].pack("H*")
+    encrypted = ["69c4e0d86a7b0430d8cdb78070b4c55a"].pack("H*")
+    decrypted = Matasano.decrypt_aes_128(encrypted, key).unpack("H*")[0]
+
+    assert_equal "00112233445566778899aabbccddeeff", decrypted
+  end
+
   def test_pad_pkcs7
     original = bin_strs_to_bytes(["00000000", "00000000"])
 
