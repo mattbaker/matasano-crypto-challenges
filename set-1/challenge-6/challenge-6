@@ -30,9 +30,7 @@ def select_top_key(bytes, potential_keys)
 end
 
 file = Matasano::str_to_bytes(Base64.decode64(ARGF.read))
-candidate_sizes = guess_key_size(file)
-candidate_keys = guess_keys(file, candidate_sizes)
-top_key, plaintext = select_top_key(file, candidate_keys)
+top_key, plaintext = select_top_key(file, guess_keys(file, guess_key_size(file)))
 
 puts "Key: #{top_key.map(&:chr).join}"
 puts ""
