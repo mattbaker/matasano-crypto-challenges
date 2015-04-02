@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require_relative '../../lib/matasano'
+
+padded = Matasano.pad_pkcs7(Matasano.str_to_bytes(ARGV[0]), 20)
+
+puts Matasano.bytes_to_str(padded).inspect

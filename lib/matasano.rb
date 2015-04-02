@@ -134,4 +134,9 @@ module Matasano
       .map {|chunk_2| Matasano::hamming_distance(chunk_1, chunk_2)/chunk_size.to_f }
       .reduce(:+) / samples
   end
+
+  def pad_pkcs7(bytes, size)
+    fill_length = size - bytes.length
+    bytes.dup.fill(fill_length, bytes.length..size-1)
+  end
 end
