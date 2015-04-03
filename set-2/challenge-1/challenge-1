@@ -2,6 +2,11 @@
 
 require_relative '../../lib/matasano'
 
-padded = Matasano.pad_pkcs7(Matasano.str_to_bytes(ARGV[0]), 20)
-
-puts Matasano.bytes_to_str(padded).inspect
+if ARGV.length > 0
+  puts Matasano.bytes_to_str(
+  Matasano.pad_pkcs7(
+    Matasano.str_to_bytes(ARGV[0]),
+    20)).inspect
+else
+  puts "e.x. ./challenge-1 \"YELLOW SUBMARINE\""
+end

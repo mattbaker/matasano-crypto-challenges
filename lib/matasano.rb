@@ -137,24 +137,48 @@ module Matasano
       .reduce(:+) / samples
   end
 
-  def decrypt_aes_128(data, key)
+  def decrypt_aes_128_ecb(bytes, key)
+    data = bytes_to_str(bytes)
     cipher = OpenSSL::Cipher.new('AES-128-ECB')
     cipher.decrypt
     cipher.padding = 0
     cipher.key = key
-    cipher.update(data) + cipher.final
+    str_to_bytes(cipher.update(data) + cipher.final)
   end
 
-  def encrypt_aes_128(data, key)
+  def encrypt_aes_128_ecb(bytes, key)
+    data = bytes_to_str(bytes)
     cipher = OpenSSL::Cipher.new('AES-128-ECB')
     cipher.encrypt
     cipher.padding = 0
     cipher.key = key
-    cipher.update(data) + cipher.final
+    str_to_bytes(cipher.update(data) + cipher.final)
   end
 
   def pad_pkcs7(bytes, size)
     fill_length = size - bytes.length
     bytes.dup.fill(fill_length, bytes.length..size-1)
+  end
+
+  def encrypt_aes_128_cbc(bytes, key, iv=Array.new(16, 0))
+    blocks = bytes.each_slice(16).to_a
+
+    chained = [Matasano.encrypt_aes_128_ecb(Matasano.xor_bytes(blocks.shift, iv), key)]
+
+    blocks.each do |block|
+      chained << Matasano.encrypt_aes_128_ecb(Matasano.xor_bytes(block, chained[-1]), key)
+    end
+
+    chained.flatten
+  end
+
+  def decrypt_aes_128_cbc(bytes, key, iv=Array.new(16, 0))
+    (iv + bytes)
+      .each_slice(16)
+      .each_cons(2)
+      .map do |last, current|
+        Matasano.xor_bytes(Matasano.decrypt_aes_128_ecb(current, key), last)
+      end
+      .flatten
   end
 end

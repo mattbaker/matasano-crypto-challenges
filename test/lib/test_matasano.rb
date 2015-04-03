@@ -115,20 +115,20 @@ class TestMatasano < Minitest::Test
     assert_equal 3.5, Matasano.hamming_difference(2, bytes, 3)
   end
 
-  def test_aes_encrypt
+  def test_aes_encrypt_ecb
     key = ["000102030405060708090a0b0c0d0e0f"].pack("H*")
-    plaintext = ["00112233445566778899aabbccddeeff"].pack("H*")
-    encrypted = Matasano.encrypt_aes_128(plaintext, key).unpack("H*")[0]
+    plaintext = Matasano.hex_str_to_bytes("00112233445566778899aabbccddeeff")
+    encrypted = Matasano.encrypt_aes_128_ecb(plaintext, key)
 
-    assert_equal "69c4e0d86a7b0430d8cdb78070b4c55a", encrypted
+    assert_equal Matasano.hex_str_to_bytes("69c4e0d86a7b0430d8cdb78070b4c55a"), encrypted
   end
 
-  def test_aes_decrypt
+  def test_aes_decrypt_ecb
     key = ["000102030405060708090a0b0c0d0e0f"].pack("H*")
-    encrypted = ["69c4e0d86a7b0430d8cdb78070b4c55a"].pack("H*")
-    decrypted = Matasano.decrypt_aes_128(encrypted, key).unpack("H*")[0]
+    encrypted = Matasano.hex_str_to_bytes("69c4e0d86a7b0430d8cdb78070b4c55a")
+    decrypted = Matasano.decrypt_aes_128_ecb(encrypted, key)
 
-    assert_equal "00112233445566778899aabbccddeeff", decrypted
+    assert_equal Matasano.hex_str_to_bytes("00112233445566778899aabbccddeeff"), decrypted
   end
 
   def test_pad_pkcs7
@@ -142,6 +142,22 @@ class TestMatasano < Minitest::Test
       "00000011",])
 
     assert_equal padded, Matasano.pad_pkcs7(original, 5)
+  end
+
+  def test_encrypt_aes_128_cbc
+    key = "YELLOW SUBMARINE"
+    plaintext = Matasano.str_to_bytes("hello world !!!!")
+    encrypted = Matasano.hex_str_to_bytes("f8b4500ceb8fb7ba2643d4c8d240192c")
+
+    assert_equal encrypted, Matasano.encrypt_aes_128_cbc(plaintext, key)
+  end
+
+  def test_aes_decrypt_cbc
+    key = "YELLOW SUBMARINE"
+    encrypted = Matasano.hex_str_to_bytes("f8b4500ceb8fb7ba2643d4c8d240192c")
+    plaintext = Matasano.str_to_bytes("hello world !!!!")
+
+    assert_equal plaintext, Matasano.decrypt_aes_128_cbc(encrypted, key)
   end
 
   private
