@@ -1,5 +1,6 @@
 require_relative "../../lib/matasano"
 require "minitest/autorun"
+require 'securerandom'
 
 class TestMatasano < Minitest::Test
   def setup
@@ -144,6 +145,18 @@ class TestMatasano < Minitest::Test
     assert_equal padded, Matasano.pad_pkcs7(original, 5)
   end
 
+  def test_pad_pkcs7_to_multiple
+    block_16 = Array.new(16, 1)
+    block_15 = Array.new(15, 1)
+    block_30 = Array.new(30, 1)
+    block_2907 = Array.new(2907, 1)
+
+    assert_equal Array.new(16, 1), Matasano.pad_pkcs7_to_multiple(block_16)
+    assert_equal Array.new(16, 1), Matasano.pad_pkcs7_to_multiple(block_15)
+    assert_equal block_30 + Array.new(2, 2), Matasano.pad_pkcs7_to_multiple(block_30)
+    assert_equal block_2907 + Array.new(5, 5), Matasano.pad_pkcs7_to_multiple(block_2907)
+  end
+
   def test_encrypt_aes_128_cbc
     key = "YELLOW SUBMARINE"
     plaintext = Matasano.str_to_bytes("hello world !!!!")
@@ -158,6 +171,25 @@ class TestMatasano < Minitest::Test
     plaintext = Matasano.str_to_bytes("hello world !!!!")
 
     assert_equal plaintext, Matasano.decrypt_aes_128_cbc(encrypted, key)
+  end
+
+  def test_detect_block_mode_ecb
+    key = SecureRandom.random_bytes(16)
+    guess = Matasano.detect_block_mode do |plain|
+      Matasano.encrypt_aes_128_ecb(plain, key)
+    end
+
+    assert_equal :ecb, guess
+  end
+
+  def test_detect_block_mode_cbc
+    key = SecureRandom.random_bytes(16)
+    iv = Matasano.str_to_bytes(SecureRandom.random_bytes(16))
+    guess = Matasano.detect_block_mode do |plain|
+      Matasano.encrypt_aes_128_cbc(plain, key, iv)
+    end
+
+    assert_equal :cbc, guess
   end
 
   private

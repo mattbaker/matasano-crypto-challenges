@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+require_relative '../../lib/matasano'
+require 'securerandom'
+
+
+def random_bytes(n)
+  Matasano.str_to_bytes(SecureRandom.random_bytes(n))
+end
+
+def pad_with_random_bytes(plain_bytes)
+  random_bytes(rand(5..10)) +
+  plain_bytes +
+  random_bytes(rand(5..10))
+end
+
+def encryption_oracle(plain_bytes)
+  padded_plain_bytes = pad_with_random_bytes(plain_bytes)
+  iv = random_bytes(16)
+  key = SecureRandom.random_bytes(16)
+  if rand(2) == 0
+    [:cbc, Matasano.encrypt_aes_128_cbc(padded_plain_bytes, key, iv)]
+  else
+    [:ecb, Matasano.encrypt_aes_128_ecb(padded_plain_bytes, key)]
+  end
+end
+
+successes = 0
+25.times do
+  mode = nil
+
+  guess = Matasano.detect_block_mode do |plaintext|
+    mode, enc = encryption_oracle(plaintext)
+    enc
+  end
+
+  if guess == mode
+    successes += 1
+    success = "✓"
+  else
+    success = "✗"
+  end
+
+  puts "#{success} | Mode: #{mode}, Guessed: #{guess}"
+end
+
+puts "Success Rate: #{((successes/25.to_f) * 100).round(3)}"

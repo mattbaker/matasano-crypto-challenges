@@ -138,7 +138,7 @@ module Matasano
   end
 
   def decrypt_aes_128_ecb(bytes, key)
-    data = bytes_to_str(bytes)
+    data = bytes_to_str(pad_pkcs7_to_multiple(bytes, 16))
     cipher = OpenSSL::Cipher.new('AES-128-ECB')
     cipher.decrypt
     cipher.padding = 0
@@ -147,7 +147,7 @@ module Matasano
   end
 
   def encrypt_aes_128_ecb(bytes, key)
-    data = bytes_to_str(bytes)
+    data = bytes_to_str(pad_pkcs7_to_multiple(bytes, 16))
     cipher = OpenSSL::Cipher.new('AES-128-ECB')
     cipher.encrypt
     cipher.padding = 0
@@ -158,6 +158,15 @@ module Matasano
   def pad_pkcs7(bytes, size)
     fill_length = size - bytes.length
     bytes.dup.fill(fill_length, bytes.length..size-1)
+  end
+
+  def pad_pkcs7_to_multiple(bytes, block_size=16)
+    if bytes.length % block_size != 0
+      block_multiple_length = bytes.length + block_size - (bytes.length % block_size)
+      pad_pkcs7(bytes, block_multiple_length)
+    else
+      bytes
+    end
   end
 
   def encrypt_aes_128_cbc(bytes, key, iv=Array.new(16, 0))
@@ -180,5 +189,12 @@ module Matasano
         Matasano.xor_bytes(Matasano.decrypt_aes_128_ecb(current, key), last)
       end
       .flatten
+  end
+
+  def detect_block_mode
+    enc = yield(Array.new(128, 1))
+    blocks = enc.each_slice(16).to_a
+    repeating_blocks = (blocks.length -  blocks.uniq.length)
+    return repeating_blocks > 0 ? :ecb : :cbc
   end
 end
