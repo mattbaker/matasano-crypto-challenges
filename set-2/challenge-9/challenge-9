@@ -8,5 +8,5 @@ if ARGV.length > 0
     Matasano.str_to_bytes(ARGV[0]),
     20)).inspect
 else
-  puts "e.x. ./challenge-1 \"YELLOW SUBMARINE\""
+  puts "e.x. ./challenge-9 \"YELLOW SUBMARINE\""
 end
