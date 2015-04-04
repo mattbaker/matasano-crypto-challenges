@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+require '../../lib/matasano'
+require 'securerandom'
+require 'base64'
+
+RANDOM_KEY = SecureRandom.random_bytes(16)
+MYSTERY_STRING = Base64.decode64("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg\naGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq\ndXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg\nYnkK\n")
+
+def oracle(plain_bytes)
+  plain_mysterious = plain_bytes + Matasano.str_to_bytes(MYSTERY_STRING)
+  Matasano.encrypt_aes_128_ecb(plain_mysterious, RANDOM_KEY)
+end
+
+
+def decrypt_char(block_size, confirmed, current_window)
+  dict = {}
+
+  prefix = Array.new(block_size,0)[0..(-2-current_window.length)]
+  (0...256).each do |char_byte|
+    test = prefix + confirmed + current_window + [char_byte]
+    test_enc = oracle(test)[0...block_size+confirmed.length]
+    dict[test_enc] = char_byte
+  end
+  enc = oracle(prefix)
+  dict[enc[0...block_size+confirmed.length]]
+end
+
+
+def decrypt_string
+  block_mode = Matasano.detect_block_mode { |bytes| oracle(bytes) }
+  block_size = Matasano.detect_block_length { |bytes| oracle(bytes) }
+  mystery_length = oracle([]).length
+
+  decrypted_string = []
+
+  (mystery_length/block_size).times do |i|
+    puts "Decrypting block #{i}"
+    current_block = []
+    block_size.times do
+      chr = decrypt_char(block_size, decrypted_string, current_block)
+      break if chr.nil?
+      current_block << chr
+    end
+    decrypted_string += current_block
+  end
+  decrypted_string.flatten.map(&:chr).join
+end
+
+decrypted = decrypt_string
+
+puts
+puts "Decrypted String:"
+puts
+puts decrypted

@@ -197,4 +197,15 @@ module Matasano
     repeating_blocks = (blocks.length -  blocks.uniq.length)
     return repeating_blocks > 0 ? :ecb : :cbc
   end
+
+  def detect_block_length
+    enc_bytes = yield(Array.new(256, 1))
+
+    (2..128).each do |length|
+      if enc_bytes[0..length] == enc_bytes[length..length*2]
+        return length
+      end
+    end
+    raise "Couldn't determine block length"
+  end
 end

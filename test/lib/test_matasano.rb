@@ -192,6 +192,15 @@ class TestMatasano < Minitest::Test
     assert_equal :cbc, guess
   end
 
+  def test_detect_block_length
+    key = SecureRandom.random_bytes(16)
+    block_length = Matasano.detect_block_length do |plain|
+      Matasano.encrypt_aes_128_ecb(plain, key)
+    end
+
+    assert_equal 16, block_length
+  end
+
   private
 
   def bin_str_to_byte(str)
