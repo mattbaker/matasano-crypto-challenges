@@ -157,6 +157,17 @@ class TestMatasano < Minitest::Test
     assert_equal block_2907 + Array.new(5, 5), Matasano.pad_pkcs7_to_multiple(block_2907)
   end
 
+  def test_unpad_pkcs7
+    block_29 = Array.new(29) {rand(8)}
+    block = block_29 + [3, 3, 3]
+    assert_equal block_29, Matasano.unpad_pkcs7(block, 16)
+  end
+
+  def test_unpad_pkcs7_no_padding
+    block_32 = Array.new(32) {rand(8)}
+    assert_equal block_32, Matasano.unpad_pkcs7(block_32, 16)
+  end
+
   def test_encrypt_aes_128_cbc
     key = "YELLOW SUBMARINE"
     plaintext = Matasano.str_to_bytes("hello world !!!!")

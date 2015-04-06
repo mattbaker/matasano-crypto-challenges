@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+require 'json'
+require 'securerandom'
+require '../../lib/matasano'
+
+RANDOM_KEY = SecureRandom.random_bytes(16)
+
+def parse_profile(str)
+  Hash[str.split("&").map{|pair| pair.split("=")}]
+end
+
+def profile_for(email)
+  {
+    email: email.gsub(/[&=]/,''),
+    uid: 10,
+    role: 'user'
+  }
+  .map {|pair| pair.join("=")}
+  .join("&")
+end
+
+def encrypted_profile_for(email)
+  Matasano.encrypt_aes_128_ecb(
+    Matasano.str_to_bytes(profile_for(email)),
+    RANDOM_KEY)
+end
+
+def decrypt_profile(enc)
+  parse_profile(Matasano.bytes_to_str(
+    Matasano.decrypt_aes_128_ecb(
+      enc,
+      RANDOM_KEY)))
+end
+
+part_1 = encrypted_profile_for("foooo@bar.com")
+part_2 = encrypted_profile_for("foooooooooadmin\v\v\v\v\v\v\v\v\v\v\v@bar.com")
+puts decrypt_profile(part_1[0...32] + part_2[16...32])

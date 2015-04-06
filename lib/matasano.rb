@@ -143,7 +143,7 @@ module Matasano
     cipher.decrypt
     cipher.padding = 0
     cipher.key = key
-    str_to_bytes(cipher.update(data) + cipher.final)
+    unpad_pkcs7(str_to_bytes(cipher.update(data) + cipher.final), 16)
   end
 
   def encrypt_aes_128_ecb(bytes, key)
@@ -154,6 +154,17 @@ module Matasano
     cipher.key = key
     str_to_bytes(cipher.update(data) + cipher.final)
   end
+
+  def unpad_pkcs7(bytes, size)
+    last_byte = bytes[-1]
+    pad = bytes[-last_byte..-1]
+    if pad && pad.all? {|v| v == last_byte }
+      bytes[0...-last_byte]
+    else
+      bytes
+    end
+  end
+
 
   def pad_pkcs7(bytes, size)
     fill_length = size - bytes.length
@@ -182,13 +193,13 @@ module Matasano
   end
 
   def decrypt_aes_128_cbc(bytes, key, iv=Array.new(16, 0))
-    (iv + bytes)
+    unpad_pkcs7((iv + bytes)
       .each_slice(16)
       .each_cons(2)
       .map do |last, current|
         Matasano.xor_bytes(Matasano.decrypt_aes_128_ecb(current, key), last)
       end
-      .flatten
+      .flatten, 16)
   end
 
   def detect_block_mode
