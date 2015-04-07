@@ -210,11 +210,16 @@ module Matasano
   end
 
   def detect_block_length
-    enc_bytes = yield(Array.new(256, 1))
-
-    (2..128).each do |length|
-      if enc_bytes[0..length] == enc_bytes[length..length*2]
-        return length
+    (2..128).each do |added_bytes|
+      enc_bytes = yield(Array.new(added_bytes, 0))
+      (2..128).each do |window|
+        enc_bytes.each_slice(window).each_cons(2).with_index.each do |(l,r),i|
+          if l == r
+            extra_bytes = (added_bytes - (window * 2))
+            prefix_size = extra_bytes > 0 ? (window - extra_bytes) : 0
+            return prefix_size, window
+          end
+        end
       end
     end
     raise "Couldn't determine block length"
