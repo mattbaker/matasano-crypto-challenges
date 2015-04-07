@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+require '../../lib/matasano'
+require 'securerandom'
+require 'base64'
+
+
+def valid_padding?(bytes, size=16)
+  unpadded = Matasano.unpad_pkcs7(bytes, 16)
+  return true if unpadded.length < bytes.length
+
+  raise "Invalid padding"
+end
+
+examples = ["ICE ICE BABY\x04\x04\x04\x04",
+            "ICE ICE BABY\x05\x05\x05\x05",
+            "ICE ICE BABY\x01\x02\x03\x04"]
+
+examples.each_with_index do |example, i|
+  begin
+    valid_padding?(Matasano.str_to_bytes(example))
+  rescue Exception => e
+    puts "Example #{i+1} #{example.inspect} failed: #{e}"
+  end
+end
