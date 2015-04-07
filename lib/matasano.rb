@@ -215,9 +215,9 @@ module Matasano
       (2..128).each do |window|
         enc_bytes.each_slice(window).each_cons(2).with_index.each do |(l,r),i|
           if l == r
-            extra_bytes = added_bytes - (window * 2)
-            prefix_size = window*i - extra_bytes
-            return prefix_size, window
+            fill_bytes = added_bytes - (window * 2)
+            prefix_size = window*i - fill_bytes
+            return prefix_size, fill_bytes, window
           end
         end
       end

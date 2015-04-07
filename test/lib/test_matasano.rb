@@ -205,33 +205,36 @@ class TestMatasano < Minitest::Test
 
   def test_detect_block_length
     key = SecureRandom.random_bytes(16)
-    prefix_length, block_length = Matasano.detect_block_length do |plain|
+    leading_length, leading_fill, block_length = Matasano.detect_block_length do |plain|
       Matasano.encrypt_aes_128_ecb(plain, key)
     end
 
-    assert_equal 0, prefix_length
+    assert_equal 0, leading_length
+    assert_equal 0, leading_fill
     assert_equal 16, block_length
   end
 
   def test_detect_block_length_with_prefix
     key = SecureRandom.random_bytes(16)
-    prefix = Matasano.str_to_bytes(SecureRandom.random_bytes(rand(10)))
-    prefix_length, block_length = Matasano.detect_block_length do |plain|
+    prefix = Matasano.str_to_bytes(SecureRandom.random_bytes(10))
+    leading_length, leading_fill, block_length = Matasano.detect_block_length do |plain|
       Matasano.encrypt_aes_128_ecb(prefix + plain, key)
     end
 
-    assert_equal prefix.length, prefix_length
+    assert_equal 10, leading_length
+    assert_equal 6, leading_fill
     assert_equal 16, block_length
   end
 
   def test_detect_block_length_with_large_prefix
     key = SecureRandom.random_bytes(16)
     prefix = Matasano.str_to_bytes(SecureRandom.random_bytes(30))
-    prefix_length, block_length = Matasano.detect_block_length do |plain|
+    leading_length, leading_fill, block_length = Matasano.detect_block_length do |plain|
       Matasano.encrypt_aes_128_ecb(prefix + plain, key)
     end
 
-    assert_equal prefix.length, prefix_length
+    assert_equal 30, leading_length
+    assert_equal 2, leading_fill
     assert_equal 16, block_length
   end
 

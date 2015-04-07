@@ -29,7 +29,7 @@ end
 
 def decrypt_string
   block_mode = Matasano.detect_block_mode { |bytes| oracle(bytes) }
-  _, block_size = Matasano.detect_block_length { |bytes| oracle(bytes) }
+  _, _, block_size = Matasano.detect_block_length { |bytes| oracle(bytes) }
   mystery_length = oracle([]).length
 
   decrypted_string = []
